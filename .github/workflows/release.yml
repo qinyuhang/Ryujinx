@@ -64,6 +64,17 @@ jobs:
           7z a ../release_output/test-ava-ryujinx-${{ steps.version_info.outputs.build_version }}-win_x64.zip publish
           popd
         shell: bash
+      
+      - name: Publish macOS
+        run: |
+          dotnet publish -c Release -r osx-x64 -o ./publish_osx/publish -p:Version="${{ steps.version_info.outputs.build_version }}" -p:SourceRevisionId="${{ steps.version_info.outputs.git_short_hash }}" -p:DebugType=embedded src/Ryujinx --self-contained true
+          dotnet publish -c Release -r osx-x64 -o ./publish_osx_sdl2_headless/publish -p:Version="${{ steps.version_info.outputs.build_version }}" -p:SourceRevisionId="${{ steps.version_info.outputs.git_short_hash }}" -p:DebugType=embedded src/Ryujinx.Headless.SDL2 --self-contained true
+          dotnet publish -c Release -r osx-x64 -o ./publish_osx_ava/publish -p:Version="${{ steps.version_info.outputs.build_version }}" -p:SourceRevisionId="${{ steps.version_info.outputs.git_short_hash }}" -p:DebugType=embedded src/Ryujinx.Ava --self-contained true
+
+      - name: Packing macOS builds
+        run: |
+          bash ./distribution/macos/create_macos_release.sh . ./output ./entitlements.xml ${{ steps.version_info.outputs.build_version }} ${{ steps.version_info.outputs.git_short_hash }}
+          mv output/* release_output/
 
       - name: Publish Linux
         run: |
